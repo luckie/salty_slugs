@@ -5,7 +5,7 @@ require 'rubygems'
 require 'test/unit'
 require 'active_record'
 
-ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
+ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
 
 require "salty_slugs"
 require "#{File.dirname(__FILE__)}/../init"
