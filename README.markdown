@@ -56,6 +56,23 @@ end
 
 * If the `sync_slug` option is set to true, the `source_column` will _always_ be sluggified upon updating the record.  This means that the slug will not be able to be manually edited, but will always be synchronized to the `source_column`.
 
+## Internationalization
+
+* If i18n is present, and the `slug_i18n` option is set to true, `has_slug` will create slugs for each available locale. The default locale will use the `slug_column` value and each additional locale will add a locale suffix to the `slug_column` (e.g. slug_es).
+
+<pre>
+I18n.locale = :es
+
+class Article < ActiveRecord::Base
+   has_slug :slug_i18n => true, :prepend_id => false
+end
+ 
+@article = Article.create(:title => "Adding i18n to Salty Slugs", :title_es => "Adicion de i18n para babosas Salado")
+
+@article.to_param
+=> 'adicion-de-i18n-para-babosas-salado'
+</pre>
+
 ## TODO
 
 * Add a word/regexp blacklist, so that they are sliced out of a string when sluggified (for example to remove .com, .net, etc)

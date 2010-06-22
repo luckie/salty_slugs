@@ -16,4 +16,11 @@ ActiveRecord::Schema.define(:version => 1) do
     t.column :author, :string
     t.column :permalink, :string
   end
+
+  create_table :press_releases do |t|
+    t.column :title, :string
+    t.column :title_es, :string
+    t.column :slug, :string
+    t.column :slug_es, :string
+  end
 end

@@ -17,12 +17,22 @@ class PostPublicSluggify < ActiveRecord::Base
   class << self; public :sluggify; end
 end
 
+class PressRelease < ActiveRecord::Base
+  if defined?(I18n)
+    I18n.available_locales = [:en, :es]
+    I18n.default_locale = :en
+    I18n.locale = :es
+  end
+  has_slug :slug_i18n => true, :prepend_id => false
+end
+
 class SlugTest < Test::Unit::TestCase
   
   def setup
     @post = Post.create(:title => "Can has cheesburger?")
     @product = Product.create(:name => "Salt Shaker")
     @article = Article.create(:title => "Lock On Black Shark", :author => "Siddhaarth Verma", :body => "It's gonna be the Mecca for simulation fans!")
+    @press_release = PressRelease.create(:title => "Homestarrunner Goes International", :title_es => "Casacorredorestrella se Internacionaliza")
   end
   
   def teardown
@@ -92,4 +102,18 @@ class SlugTest < Test::Unit::TestCase
     
     slugs.each { |title, slug| assert_equal slug, PostPublicSluggify.sluggify(title) }
   end
+
+  if defined?(I18n)
+
+    def test_slug_column_i18n
+      assert_equal "slug_es", PressRelease.slug_column.to_s
+    end
+
+    def test_source_column_i18n
+      assert_equal 'homestarrunner-goes-international', @press_release.slug
+      assert_equal 'casacorredorestrella-se-internacionaliza', @press_release.slug_es
+    end
+
+  end
+
 end

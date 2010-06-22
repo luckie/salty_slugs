@@ -12,23 +12,36 @@ module Norbauer
         end
 
         options = args.extract_options!
-        slug_column = options[:slug_column] || 'slug'
-        source_column = options[:source_column] || 'title'
+        slug_i18n = options[:slug_i18n].nil? ? false : options[:slug_i18n]
+        slug_column_base = options[:slug_column] || 'slug'
         prepend_id = options[:prepend_id].nil? ? true : options[:prepend_id]
         sync_slug = options[:sync_slug].nil? ? false : options[:sync_slug]
         scope_fields = options[:scope] || nil
 
-        write_inheritable_attribute :slug_column, slug_column
         write_inheritable_attribute :slug_prepend_id, prepend_id
-
-        class_inheritable_reader :slug_column
         class_inheritable_reader :slug_prepend_id
 
-        unless slug_prepend_id
-          scope_fields ? (validates_uniqueness_of slug_column, :scope => scope_fields) : (validates_uniqueness_of slug_column)
+        locales = slug_i18n && defined?(I18n) ? I18n.available_locales : ['']
+        locales.each do |locale|
+          suffix = locale.blank? || locale == I18n.default_locale ? '' : "_#{locale}"
+          slug_column = !options[:slug_column].nil? ? "#{options[:slug_column]}#{suffix}" : "slug#{suffix}"
+          source_column = !options[:source_column].nil? ? "#{options[:source_column]}#{suffix}" : "title#{suffix}"
+
+          write_inheritable_attribute :slug_column, slug_column
+          class_inheritable_reader :slug_column
+
+          unless slug_prepend_id
+            scope_fields ? (validates_uniqueness_of slug_column, :scope => scope_fields) : (validates_uniqueness_of slug_column)
+          end
+
+          before_validation { |record| record[slug_column] = (sync_slug || record[slug_column].blank?) ? sluggify(record.send(source_column)) : sluggify(record[slug_column]) }
         end
 
-        before_validation { |record| record[slug_column] = (sync_slug || record[slug_column].blank?) ? sluggify(record.send(source_column)) : sluggify(record[slug_column]) }
+        locale_suffix = !defined?(I18n) || (I18n.locale == I18n.default_locale) ? '' : "_#{I18n.locale}"
+
+        write_inheritable_attribute :slug_column, "#{slug_column_base}#{locale_suffix}"
+        class_inheritable_reader :slug_column
+
       end
 
       module ClassMethods
